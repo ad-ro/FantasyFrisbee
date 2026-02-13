@@ -12,13 +12,9 @@ from typing import List, Dict, Optional
 # Tier mapping from abbreviations to full names
 TIER_MAP = {
     'ES': 'DGPT - Elite Series',
-    'ESP': 'DGPT - Elite Series',  # Elite Series Playoffs
-    'ESp': 'DGPT - Elite Series',  # Elite Series Playoffs (alternate notation)
+    'ESP': 'DGPT - Elite Series Plus',  # Elite Series Playoffs (alternate notation)
     'M': 'Major',
-    'SS': 'DGPT - Silver Series',
-    'A': 'A-Tier',
-    'B': 'B-Tier',
-    'C': 'C-Tier'
+
 }
 
 

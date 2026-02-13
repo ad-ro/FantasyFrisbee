@@ -23,22 +23,16 @@ except ImportError:
 
 # Event tier multipliers
 TIER_MULTIPLIERS = {
-    'DGPT - Elite Series': 3.0,
-    'Major': 2.5,
-    'DGPT - Silver Series': 2.0,
-    'A-Tier': 2.0,
-    'B-Tier': 1.0,
-    'C-Tier': 1.0
+    'DGPT - Elite Series': 1.0,
+    'Major': 2.0,
+    'DGPT - Elite Series Plus': 1.5
 }
 
 # Simplified tier names for display
 TIER_DISPLAY_NAMES = {
     'DGPT - Elite Series': 'Elite',
+    'DGPT - Elite Series Plus' : 'Elite',
     'Major': 'Major',
-    'DGPT - Silver Series': 'A-Tier',
-    'A-Tier': 'A-Tier',
-    'B-Tier': 'B-Tier',
-    'C-Tier': 'B-Tier'
 }
 
 
@@ -411,7 +405,7 @@ class FantasyLeagueUpdater:
                         
                         # Double points for underdog (7th pick)
                         if player.get('is_underdog', False):
-                            score *= 2
+                            score *= 0.5
                         
                         week_score += score
                         tournaments_played_this_week += 1

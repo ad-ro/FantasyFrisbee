@@ -17,12 +17,9 @@ Big Easy Open,ES,March 13 - 15,
 **Format:** `Tournament Name, Tier Code, Dates,`
 
 **Tier Codes:**
-- `ES` = Elite Series (3x multiplier)
-- `ESP` or `ESp` = Elite Series Playoffs (3x multiplier)
-- `M` = Major (2.5x multiplier)
-- `SS` = Silver Series (2x multiplier)
-- `A` = A-Tier (2x multiplier)
-- `B` = B-Tier (1x multiplier)
+- `ES` = Elite Series (1x multiplier)
+- `ESP` or `ESp` = Elite Series Plus (1.5x multiplier)
+- `M` = Major (2x multiplier)
 
 ### 2. Tournament Parser (`tournament_parser.py`)
 Reads `tournaments.txt` and provides:
