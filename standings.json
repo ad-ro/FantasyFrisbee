@@ -1,0 +1,21 @@
+{
+  "last_updated": "2025-02-06T12:00:00Z",
+  "season": "2025",
+  "current_week": 0,
+  "standings": [
+    {
+      "team_name": "Team Alpha",
+      "owner": "Player 1",
+      "total_score": 0.0,
+      "weeks_counted": 0,
+      "weekly_breakdown": []
+    },
+    {
+      "team_name": "Team Beta",
+      "owner": "Player 2",
+      "total_score": 0.0,
+      "weeks_counted": 0,
+      "weekly_breakdown": []
+    }
+  ]
+}

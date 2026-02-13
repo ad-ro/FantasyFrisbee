@@ -1,0 +1,370 @@
+#!/usr/bin/env python3
+"""
+PDGA Fantasy Disc Golf League Scraper
+Fetches tournament results and calculates fantasy points
+"""
+
+import json
+import requests
+from datetime import datetime, timedelta
+from typing import List, Dict, Optional
+import time
+
+# Event tier multipliers
+TIER_MULTIPLIERS = {
+    'DGPT - Elite Series': 3.0,
+    'Major': 2.5,
+    'DGPT - Silver Series': 2.0,
+    'A-Tier': 2.0,
+    'B-Tier': 1.0,
+    'C-Tier': 1.0
+}
+
+# Simplified tier names for display
+TIER_DISPLAY_NAMES = {
+    'DGPT - Elite Series': 'Elite',
+    'Major': 'Major',
+    'DGPT - Silver Series': 'A-Tier',
+    'A-Tier': 'A-Tier',
+    'B-Tier': 'B-Tier',
+    'C-Tier': 'B-Tier'
+}
+
+
+class PDGAScraper:
+    """Scraper for PDGA tournament data"""
+    
+    def __init__(self):
+        self.base_url = "https://www.pdga.com/tour/search"
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        })
+    
+    def get_recent_mpo_tournaments(self, days_back: int = 14) -> List[Dict]:
+        """
+        Fetch recent MPO tournaments from PDGA
+        Note: This is a simplified version. You'll need to implement actual PDGA scraping
+        based on their current website structure or API.
+        """
+        tournaments = []
+        
+        # TODO: Implement actual PDGA scraping
+        # For now, this is a placeholder structure
+        # You would typically:
+        # 1. Query PDGA tour events API or scrape their events page
+        # 2. Filter for MPO division
+        # 3. Get results for each tournament
+        # 4. Parse the standings/results
+        
+        print("⚠️  PDGA scraping needs to be implemented based on current PDGA website structure")
+        print("    Check https://www.pdga.com/tour/search for tournament data")
+        print("    Consider using their API if available or BeautifulSoup for scraping")
+        
+        return tournaments
+    
+    def get_player_tournament_results(self, pdga_number: int, tournament_id: str) -> Optional[Dict]:
+        """
+        Get a specific player's results from a tournament
+        
+        Args:
+            pdga_number: Player's PDGA number
+            tournament_id: PDGA tournament ID
+            
+        Returns:
+            Dictionary with player's placement and other details
+        """
+        # TODO: Implement based on PDGA structure
+        return None
+    
+    def calculate_placement_score(self, placement: int) -> float:
+        """
+        Calculate points based on tournament placement
+        Lower placement = lower score (better)
+        
+        Args:
+            placement: Player's finishing position
+            
+        Returns:
+            Points for that placement
+        """
+        # Direct placement scoring (1st = 1 point, 2nd = 2 points, etc.)
+        return float(placement)
+
+
+class FantasyLeagueUpdater:
+    """Updates fantasy league standings based on tournament results"""
+    
+    def __init__(self, data_dir: str = "data"):
+        self.data_dir = data_dir
+        self.scraper = PDGAScraper()
+        self.rosters = self.load_rosters()
+        self.standings = self.load_standings()
+        self.tournaments = self.load_tournaments()
+        self.player_stats = self.load_player_stats()
+    
+    def load_rosters(self) -> Dict:
+        """Load team rosters from JSON"""
+        with open(f"{self.data_dir}/rosters.json", 'r') as f:
+            return json.load(f)
+    
+    def load_standings(self) -> Dict:
+        """Load current standings from JSON"""
+        with open(f"{self.data_dir}/standings.json", 'r') as f:
+            return json.load(f)
+    
+    def load_tournaments(self) -> Dict:
+        """Load tournament history from JSON"""
+        with open(f"{self.data_dir}/recent_tournaments.json", 'r') as f:
+            return json.load(f)
+    
+    def load_player_stats(self) -> Dict:
+        """Load player statistics from JSON"""
+        with open(f"{self.data_dir}/player_stats.json", 'r') as f:
+            return json.load(f)
+    
+    def save_all_data(self):
+        """Save all updated data to JSON files"""
+        with open(f"{self.data_dir}/standings.json", 'w') as f:
+            json.dump(self.standings, f, indent=2)
+        
+        with open(f"{self.data_dir}/rosters.json", 'w') as f:
+            json.dump(self.rosters, f, indent=2)
+        
+        with open(f"{self.data_dir}/recent_tournaments.json", 'w') as f:
+            json.dump(self.tournaments, f, indent=2)
+        
+        with open(f"{self.data_dir}/player_stats.json", 'w') as f:
+            json.dump(self.player_stats, f, indent=2)
+    
+    def update_from_weekly_tournaments(self, tournaments: List[Dict]):
+        """
+        Update standings based on a week's worth of tournaments
+        Only counts the best 3 players from each team for the week
+        
+        Args:
+            tournaments: List of tournament dictionaries for the week
+        """
+        if not tournaments:
+            return
+        
+        week_number = self.standings['current_week'] + 1
+        self.standings['current_week'] = week_number
+        
+        # Track this week's scores for each team
+        for team in self.rosters['teams']:
+            weekly_player_scores = []
+            
+            # Calculate scores for each player across all tournaments this week
+            for player in team['players']:
+                week_score = 0.0
+                tournaments_played_this_week = 0
+                
+                # Check all tournaments from this week
+                for tournament in tournaments:
+                    player_result = self.find_player_result(
+                        tournament['results'], 
+                        player['pdga_number']
+                    )
+                    
+                    if player_result:
+                        tier_multiplier = TIER_MULTIPLIERS.get(tournament.get('tier', 'B-Tier'), 1.0)
+                        placement = player_result['placement']
+                        base_score = self.scraper.calculate_placement_score(placement)
+                        
+                        # Apply tier multiplier
+                        score = base_score * tier_multiplier
+                        
+                        # Double points for underdog (7th pick)
+                        if player.get('is_underdog', False):
+                            score *= 2
+                        
+                        week_score += score
+                        tournaments_played_this_week += 1
+                        
+                        # Track individual tournament for this player
+                        player.setdefault('weekly_scores', []).append({
+                            'week': week_number,
+                            'tournament': tournament['name'],
+                            'placement': placement,
+                            'score': score,
+                            'tier': TIER_DISPLAY_NAMES.get(tournament['tier'], 'B-Tier'),
+                            'counted': False  # Will be updated if in top 3
+                        })
+                
+                # Update player's running totals
+                if tournaments_played_this_week > 0:
+                    player['tournaments_played'] = player.get('tournaments_played', 0) + tournaments_played_this_week
+                
+                # Track this player's weekly score for top-3 selection
+                weekly_player_scores.append({
+                    'player': player,
+                    'week_score': week_score,
+                    'tournaments_played': tournaments_played_this_week
+                })
+            
+            # Sort players by weekly score and take best 3 (lowest scores)
+            weekly_player_scores.sort(key=lambda x: x['week_score'])
+            top_3_players = weekly_player_scores[:3]
+            
+            # Calculate team's week score from top 3 players
+            team_week_score = sum(p['week_score'] for p in top_3_players if p['tournaments_played'] > 0)
+            
+            # Update which players were counted this week
+            for player_data in top_3_players:
+                if player_data['tournaments_played'] > 0:
+                    player = player_data['player']
+                    player['season_total'] = player.get('season_total', 0.0) + player_data['week_score']
+                    player['times_counted'] = player.get('times_counted', 0) + 1
+                    
+                    # Mark their weekly scores as counted
+                    for score_entry in player.get('weekly_scores', []):
+                        if score_entry['week'] == week_number:
+                            score_entry['counted'] = True
+            
+            # Record weekly breakdown for this team
+            team_standings = next((s for s in self.standings['standings'] if s['team_name'] == team['team_name']), None)
+            if team_standings:
+                team_standings.setdefault('weekly_breakdown', []).append({
+                    'week': week_number,
+                    'score': team_week_score,
+                    'top_3_players': [
+                        {
+                            'name': p['player']['name'],
+                            'score': p['week_score'],
+                            'tournaments': p['tournaments_played']
+                        } for p in top_3_players if p['tournaments_played'] > 0
+                    ]
+                })
+        
+        # Update player stats for leaderboard
+        self.update_player_stats()
+        
+        # Recalculate team standings
+        self.recalculate_standings()
+        
+        # Add tournaments to history
+        for tournament in tournaments:
+            self.add_tournament_to_history(tournament)
+    
+    def update_player_stats(self):
+        """Update the player statistics leaderboard"""
+        all_players = []
+        
+        for team in self.rosters['teams']:
+            for player in team['players']:
+                all_players.append({
+                    'name': player['name'],
+                    'pdga_number': player['pdga_number'],
+                    'team': team['team_name'],
+                    'owner': team['owner'],
+                    'is_underdog': player.get('is_underdog', False),
+                    'season_total': player.get('season_total', 0.0),
+                    'tournaments_played': player.get('tournaments_played', 0),
+                    'times_counted': player.get('times_counted', 0),
+                    'average_when_counted': (
+                        player.get('season_total', 0.0) / player.get('times_counted', 1)
+                        if player.get('times_counted', 0) > 0 else 0.0
+                    )
+                })
+        
+        # Sort by season total (lower is better)
+        all_players.sort(key=lambda x: x['season_total'] if x['season_total'] > 0 else float('inf'))
+        
+        self.player_stats['player_stats'] = all_players
+        self.player_stats['last_updated'] = datetime.utcnow().isoformat() + 'Z'
+    
+    def find_player_result(self, results: List[Dict], pdga_number: int) -> Optional[Dict]:
+        """Find a player's result in tournament results"""
+        for result in results:
+            if result.get('pdga_number') == pdga_number:
+                return result
+        return None
+    
+    def recalculate_standings(self):
+        """Recalculate team standings based on weekly top-3 scores"""
+        for team_standing in self.standings['standings']:
+            # Sum all weekly scores
+            total_score = sum(week['score'] for week in team_standing.get('weekly_breakdown', []))
+            team_standing['total_score'] = total_score
+            team_standing['weeks_counted'] = len(team_standing.get('weekly_breakdown', []))
+        
+        # Sort by total score (lower is better)
+        self.standings['standings'].sort(key=lambda x: x['total_score'])
+        
+        self.standings['last_updated'] = datetime.utcnow().isoformat() + 'Z'
+    
+    def add_tournament_to_history(self, tournament: Dict):
+        """Add tournament to recent tournaments list"""
+        # Keep only last 10 tournaments
+        if len(self.tournaments['tournaments']) >= 10:
+            self.tournaments['tournaments'] = self.tournaments['tournaments'][-9:]
+        
+        # Extract fantasy-relevant results
+        fantasy_results = []
+        for team in self.rosters['teams']:
+            for player in team['players']:
+                result = self.find_player_result(tournament['results'], player['pdga_number'])
+                if result:
+                    fantasy_results.append({
+                        'player': player['name'],
+                        'finish': f"{self.ordinal(result['placement'])} place",
+                        'points': result.get('fantasy_points', 0)
+                    })
+        
+        tournament_entry = {
+            'name': tournament['name'],
+            'date': tournament['date'],
+            'location': tournament['location'],
+            'tier': TIER_DISPLAY_NAMES.get(tournament['tier'], 'B-Tier'),
+            'fantasy_results': fantasy_results
+        }
+        
+        self.tournaments['tournaments'].append(tournament_entry)
+    
+    @staticmethod
+    def ordinal(n: int) -> str:
+        """Convert number to ordinal (1 -> 1st, 2 -> 2nd, etc.)"""
+        if 11 <= n <= 13:
+            suffix = 'th'
+        else:
+            suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')
+        return f"{n}{suffix}"
+    
+    def run_update(self):
+        """Main update function - fetches new tournaments and updates standings"""
+        print("🥏 Starting Fantasy Disc Golf League update...")
+        print(f"   Checking for tournaments from the past 14 days...")
+        
+        # Fetch recent tournaments
+        recent_tournaments = self.scraper.get_recent_mpo_tournaments(days_back=14)
+        
+        if not recent_tournaments:
+            print("   No new tournaments found.")
+        else:
+            print(f"   Found {len(recent_tournaments)} tournament(s)")
+            
+            # Process all tournaments from this week as a batch
+            # This ensures we select the best 3 players across all weekly tournaments
+            print(f"   Processing weekly batch of tournaments...")
+            self.update_from_weekly_tournaments(recent_tournaments)
+        
+        # Save updated data
+        self.save_all_data()
+        print("✅ Update complete! Data saved.")
+        print(f"   Current week: {self.standings['current_week']}")
+        
+        # Print standings summary
+        print("\n📊 Current Standings:")
+        for i, team in enumerate(self.standings['standings'][:5], 1):
+            print(f"   {i}. {team['team_name']}: {team['total_score']:.1f} pts ({team['weeks_counted']} weeks)")
+
+
+def main():
+    """Main entry point"""
+    updater = FantasyLeagueUpdater()
+    updater.run_update()
+
+
+if __name__ == "__main__":
+    main()

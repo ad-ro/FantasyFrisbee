@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Disc Golf League</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🥏 Fantasy Disc Golf League</h1>
+            <p class="subtitle">2025 Season</p>
+            <div id="last-updated"></div>
+        </header>
+
+        <section class="standings">
+            <h2>Current Standings</h2>
+            <div id="standings-table"></div>
+        </section>
+
+        <section class="player-stats">
+            <h2>Player Performance Leaderboard</h2>
+            <div class="stats-controls">
+                <button class="stats-btn active" onclick="showAllPlayers()">All Players</button>
+                <button class="stats-btn" onclick="showCountedOnly()">Counted Players Only</button>
+                <button class="stats-btn" onclick="showUnderdogs()">Underdogs</button>
+            </div>
+            <div id="player-stats-table"></div>
+        </section>
+
+        <section class="teams">
+            <h2>Team Rosters</h2>
+            <div id="team-rosters"></div>
+        </section>
+
+        <section class="weekly-breakdown">
+            <h2>Weekly Performance Breakdown</h2>
+            <div id="weekly-breakdown"></div>
+        </section>
+
+        <section class="recent-results">
+            <h2>Recent Tournament Results</h2>
+            <div id="recent-tournaments"></div>
+        </section>
+
+        <footer>
+            <p>Data sourced from PDGA • Updated weekly via GitHub Actions</p>
+            <p class="rules-link"><a href="#rules" onclick="toggleRules()">View League Rules</a></p>
+        </footer>
+
+        <div id="rules-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="toggleRules()">&times;</span>
+                <h2>League Rules</h2>
+                <ul>
+                    <li>Each player selects 7 professional disc golfers (MPO only)</li>
+                    <li>The 7th pick must be ranked outside the top 50</li>
+                    <li>The 7th pick (underdog) scores double points</li>
+                    <li><strong>Weekly Scoring: Only your best 3 players count each week</strong></li>
+                    <li>Scoring: Placement points × Event Tier multiplier</li>
+                    <li>Lower total score wins at season end</li>
+                    <li>Event Tiers: Elite = 3x, Major = 2.5x, A-Tier = 2x, B-Tier = 1x</li>
+                    <li>Track individual player contributions throughout the season</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
