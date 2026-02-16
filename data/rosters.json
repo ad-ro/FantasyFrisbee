@@ -1,0 +1,142 @@
+{
+  "teams": [
+    {
+      "team_name": "Team Alpha",
+      "owner": "Player 1",
+      "players": [
+        {
+          "name": "Niklas Anttila",
+          "pdga_number": 91249,
+          "is_underdog": false,
+          "season_total": 0.0,
+          "tournaments_played": 0,
+          "times_counted": 0,
+          "weekly_scores": []
+        },
+        {
+          "name": "Kyle Klein",
+          "pdga_number": 85132,
+          "is_underdog": false,
+          "season_total": 0.0,
+          "tournaments_played": 0,
+          "times_counted": 0,
+          "weekly_scores": []
+        },
+        {
+          "name": "Sullivan Tipton",
+          "pdga_number": 78817,
+          "is_underdog": false,
+          "season_total": 0.0,
+          "tournaments_played": 0,
+          "times_counted": 0,
+          "weekly_scores": []
+        },
+        {
+          "name": "Austin Turner",
+          "pdga_number": 54049,
+          "is_underdog": false,
+          "season_total": 0.0,
+          "tournaments_played": 0,
+          "times_counted": 0,
+          "weekly_scores": []
+        },
+        {
+          "name": "Cole Redalen",
+          "pdga_number": 79748,
+          "is_underdog": false,
+          "season_total": 0.0,
+          "tournaments_played": 0,
+          "times_counted": 0,
+          "weekly_scores": []
+        },
+        {
+          "name": "Paul Krans",
+          "pdga_number": 132521,
+          "is_underdog": false,
+          "season_total": 0.0,
+          "tournaments_played": 0,
+          "times_counted": 0,
+          "weekly_scores": []
+        },
+        {
+          "name": "Harry Chace",
+          "pdga_number": 131546,
+          "is_underdog": true,
+          "season_total": 0.0,
+          "tournaments_played": 0,
+          "times_counted": 0,
+          "weekly_scores": []
+        }
+      ]
+    },
+    {
+      "team_name": "Team Beta",
+      "owner": "Player 2",
+      "players": [
+        {
+          "name": "Ezra Robinson",
+          "pdga_number": 50671,
+          "is_underdog": false,
+          "season_total": 0.0,
+          "tournaments_played": 0,
+          "times_counted": 0,
+          "weekly_scores": []
+        },
+        {
+          "name": "Aaron Gossage",
+          "pdga_number": 35449,
+          "is_underdog": false,
+          "season_total": 0.0,
+          "tournaments_played": 0,
+          "times_counted": 0,
+          "weekly_scores": []
+        },
+        {
+          "name": "Adam Hammes",
+          "pdga_number": 57365,
+          "is_underdog": false,
+          "season_total": 0.0,
+          "tournaments_played": 0,
+          "times_counted": 0,
+          "weekly_scores": []
+        },
+        {
+          "name": "Simon Lizotte",
+          "pdga_number": 8332,
+          "is_underdog": false,
+          "season_total": 0.0,
+          "tournaments_played": 0,
+          "times_counted": 0,
+          "weekly_scores": []
+        },
+        {
+          "name": "Ezra Aderhold",
+          "pdga_number": 121715,
+          "is_underdog": false,
+          "season_total": 0.0,
+          "tournaments_played": 0,
+          "times_counted": 0,
+          "weekly_scores": []
+        },
+        {
+          "name": "Gavin Babcock",
+          "pdga_number": 80331,
+          "is_underdog": false,
+          "season_total": 0.0,
+          "tournaments_played": 0,
+          "times_counted": 0,
+          "weekly_scores": []
+        },
+        {
+          "name": "Gavin Rathbun",
+          "pdga_number": 60436,
+          "is_underdog": true,
+          "season_total": 0.0,
+          "tournaments_played": 0,
+          "times_counted": 0,
+          "weekly_scores": []
+        }
+      ]
+    }
+  ]
+}

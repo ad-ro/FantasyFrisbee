@@ -21,7 +21,6 @@ except ImportError:
     SCHEDULE_AVAILABLE = False
     print("⚠️  tournament_parser.py not found - tier detection will use defaults")
 
-
 # Event tier multipliers
 TIER_MULTIPLIERS = {
     'DGPT - Elite Series': 1.0,
@@ -35,7 +34,6 @@ TIER_DISPLAY_NAMES = {
     'DGPT - Elite Series Plus' : 'Elite',
     'Major': 'Major',
 }
-
 
 
 class PDGAScraper:
@@ -123,103 +121,72 @@ class PDGAScraper:
             
             soup = BeautifulSoup(response.text, 'html.parser')
             
+            # Find MPO division results
             results = []
             
-            # Find MPO division section using the h3.division element
-            # Structure: <h3 class="division" id="MPO">MPO · Mixed Pro Open</h3>
-            division_header = soup.find('h3', {'class': 'division', 'id': division})
+            # Strategy 1: Look for division-specific section
+            mpo_section = soup.find('div', {'id': division}) or soup.find('div', class_=re.compile(division, re.I))
             
-            if not division_header:
-                print(f"      ⚠️  Could not find {division} division header")
+            # Strategy 2: Look for results table with MPO
+            if not mpo_section:
+                tables = soup.find_all('table')
+                for table in tables:
+                    table_text = table.get_text().upper()
+                    if 'MPO' in table_text or 'OPEN' in table_text:
+                        mpo_section = table
+                        break
+            
+            if not mpo_section:
+                print(f"      ⚠️  Could not find {division} results section")
                 return []
             
-            print(f"      ✅ Found {division} division section")
-            
-            # Find the parent details element and then the table
-            details_section = division_header.find_parent('details')
-            
-            if not details_section:
-                # If no details, try finding table near the header
-                results_table = division_header.find_next('table', class_='results')
-            else:
-                results_table = details_section.find('table', class_='results')
+            # Find the results table
+            results_table = mpo_section.find('table') if mpo_section.name != 'table' else mpo_section
             
             if not results_table:
                 print(f"      ⚠️  Could not find results table")
                 return []
             
-            print(f"      ✅ Found results table")
-            
-            # Parse tbody rows (skip header)
-            tbody = results_table.find('tbody')
-            if tbody:
-                rows = tbody.find_all('tr')
-            else:
-                rows = results_table.find_all('tr')[1:]  # Skip header if no tbody
-            
-            print(f"      Found {len(rows)} result rows")
+            # Parse table rows
+            rows = results_table.find_all('tr')[1:]  # Skip header
             
             for row in rows:
                 try:
-                    # Find placement in td.place
-                    place_cell = row.find('td', class_='place')
-                    if not place_cell:
+                    cells = row.find_all('td')
+                    if len(cells) < 2:
                         continue
                     
-                    place_text = place_cell.get_text().strip()
+                    # Extract placement
+                    place_text = cells[0].get_text().strip()
                     place_match = re.search(r'\d+', place_text)
                     if not place_match:
                         continue
                     placement = int(place_match.group())
                     
-                    # Find player cell (td.player) containing the link
-                    player_cell = row.find('td', class_='player')
-                    if not player_cell:
-                        continue
+                    # Find player link to get PDGA number
+                    player_link = row.find('a', href=re.compile(r'/player/\d+'))
                     
-                    player_link = player_cell.find('a')
-                    if not player_link:
-                        continue
-                    
-                    player_name = player_link.get_text().strip()
-                    
-                    # Extract PDGA number from link href="/player/XXXXX"
-                    href = player_link.get('href', '')
-                    pdga_match = re.search(r'/player/(\d+)', href)
-                    
-                    if not pdga_match:
-                        # Try finding PDGA number in separate cell
-                        pdga_cell = row.find('td', class_='pdga-number')
-                        if pdga_cell:
-                            pdga_text = pdga_cell.get_text().strip()
-                            pdga_match = re.search(r'\d+', pdga_text)
-                            if pdga_match:
-                                pdga_number = int(pdga_match.group())
-                            else:
-                                continue
-                        else:
-                            continue
-                    else:
-                        pdga_number = int(pdga_match.group(1))
-                    
-                    results.append({
-                        'placement': placement,
-                        'pdga_number': pdga_number,
-                        'name': player_name,
-                        'tied': False  # Could check for 'T' in place_text if needed
-                    })
+                    if player_link:
+                        pdga_match = re.search(r'/player/(\d+)', player_link['href'])
+                        if pdga_match:
+                            pdga_number = int(pdga_match.group(1))
+                            player_name = player_link.get_text().strip()
+                            
+                            results.append({
+                                'placement': placement,
+                                'pdga_number': pdga_number,
+                                'name': player_name,
+                                'tied': 'T' in place_text.upper()
+                            })
                 
                 except Exception as e:
-                    # Skip problematic rows
                     continue
             
-            print(f"      ✅ Successfully parsed {len(results)} {division} results")
+            print(f"      ✅ Found {len(results)} {division} results")
             return results
             
         except Exception as e:
             print(f"      ❌ Error fetching tournament results: {e}")
-            import traceback
-            traceback.print_exc()
             return []
     
     def get_recent_mpo_tournaments(self, days_back: int = 14) -> List[Dict]:
@@ -326,8 +293,8 @@ class PDGAScraper:
         tournament = {
             'id': event_id,
             'name': tournament_name,
-            'tier': tournament_info['tier'] if tournament_info else 'Elite',
-            'tier_abbr': tournament_info['tier_abbr'] if tournament_info else 'E',
+            'tier': tournament_info['tier'] if tournament_info else 'A-Tier',
+            'tier_abbr': tournament_info['tier_abbr'] if tournament_info else 'A',
             'date': datetime.now().strftime('%Y-%m-%d'),
             'location': 'USA',
             'results': results
@@ -605,7 +572,7 @@ class FantasyLeagueUpdater:
         print(f"   Checking for tournaments from the past 14 days...")
         
         # Fetch recent tournaments
-        recent_tournaments = self.scraper.get_recent_mpo_tournaments(days_back=14)
+        recent_tournaments = self.scraper.get_recent_mpo_tournaments(days_back=365)
         
         if not recent_tournaments:
             print("\n   ℹ️  No new tournaments found.")

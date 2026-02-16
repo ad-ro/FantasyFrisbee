@@ -5,7 +5,7 @@ Parses tournaments.txt and provides tournament information for the fantasy leagu
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 
 
@@ -38,20 +38,21 @@ class TournamentSchedule:
             
             # Process in groups of 3 (name, tier, dates)
             for i in range(0, len(entries), 3):
-                if i + 2 >= len(entries):
+                if i + 3 >= len(entries):
                     break
-                
-                name = entries[i].strip()
-                tier_abbr = entries[i + 1].strip()
-                dates = entries[i + 2].strip()
+                id = entries[i].strip()
+                name = entries[i+1].strip()
+                tier_abbr = entries[i + 2].strip()
+                dates = entries[i + 3].strip()
                 
                 # Parse the tier
-                tier = TIER_MAP.get(tier_abbr, 'B-Tier')
+                tier = TIER_MAP.get(tier_abbr, 'ES')
                 
                 # Parse dates
                 start_date, end_date = self.parse_dates(dates)
                 
                 tournament = {
+                    'id': id,
                     'name': name,
                     'tier_abbr': tier_abbr,
                     'tier': tier,
@@ -139,7 +140,7 @@ class TournamentSchedule:
     
     def get_tier_for_tournament(self, name: str) -> str:
         """Get the tier for a tournament by name"""
-        tournament = self.find_tournament_by_name(name)
+        tournament = self.find_tournament_by_id(id)
         if tournament:
             return tournament['tier']
         return 'B-Tier'  # Default if not found
